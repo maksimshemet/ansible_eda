@@ -28,10 +28,10 @@ docker compose down --volumes --remove-orphans
 ## Test the webhook
 Send a JSON event that matches the rulebook condition (`event.payload.message == "run"`). Example:
 ```sh
-curl -X POST http://localhost:5000/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token supersecret123" \
-  -d '{"payload":{"message":"run"}}'
+curl -X POST http://localhost:5000 \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer supersecret123" \
+     -d '{"message": "run"}'
 ```
 This hits the webhook source defined in [`test-rulebook.yml`](test-rulebook.yml) and triggers the playbook [`fix_test.yml`](fix_test.yml).
 
