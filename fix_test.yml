@@ -1,0 +1,31 @@
+- name: Respond to event
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - debug:
+        msg: "🚀 Event received and playbook executed inside Docker!"
+
+    - name: Rotate Vault secret (HashiCorp Vault KV v2)
+      vars:
+        vault_addr: "{{ lookup('env','VAULT_ADDR') | default('http://127.0.0.1:8200') }}"
+        vault_token: "{{ lookup('env','VAULT_TOKEN') }}"
+        secret_mount: "secret"                        # KV mount name (e.g. secret)
+        secret_path: "okta/brkngls"              # path under the mount
+        new_password: "{{ lookup('password','/dev/null length=32 chars=ascii_letters,digits') }}"
+      uri:
+        url: "{{ vault_addr }}/v1/{{ secret_mount }}/data/{{ secret_path }}"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          data:
+            test: "{{ new_password }}"
+      register: vault_write
+      no_log: false
+
+    - name: Confirm rotation succeeded
+      debug:
+        msg: "Vault secret rotated (new version created)"
+      when: vault_write.status == 200 or vault_write.status == 204
